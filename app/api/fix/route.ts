@@ -1,7 +1,6 @@
-// app/api/fix/route.ts
 import Groq from "groq-sdk"
 
-export const runtime = "nodejs" // groq-sdk requires Node APIs
+export const runtime = "nodejs"
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY!,
@@ -15,39 +14,43 @@ export async function POST(req: Request) {
       return Response.json({ error: "No text provided" }, { status: 400 })
     }
 
-    if (!process.env.GROQ_API_KEY) {
-      console.error("[v0] GROQ_API_KEY missing")
-      return Response.json(
-        { error: "Groq API key not configured" },
-        { status: 500 },
-      )
-    }
-
-    console.log("[v0] Guessing inaudible parts in", language)
+    console.log("[v0] Fixing inaudible parts with timestamps in", language)
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
+      temperature: 0.6,
+      max_tokens: 1024,
       messages: [
         {
           role: "system",
-          content: `You are a speech transcript assistant working in ${language}.
-When parts of the transcript are missing or unclear, do NOT replace them.
-Instead, insert a marker like [INAUDIBLE: your best guess].
-Keep the rest of the transcript untouched and natural.
+          content: `
+You are a speech transcript fixer in ${language}.
+When a part of the transcript is missing or unclear, insert a marker in this format:
+[INAUDIBLE HH:MM:SS: your best guess]
 
-Example:
+- HH:MM:SS should be an estimated timestamp for where the unclear word/phrase occurred.
+- Keep the rest of the transcript exactly the same.
+- Never remove unclear parts; always mark them.
+- Make contextually plausible guesses.
+
+Examples:
 Input: "I went to the [noise] yesterday."
-Output: "I went to [INAUDIBLE: the concert] yesterday."`,
+Output: "I went to [INAUDIBLE 00:02:15: the concert] yesterday."
+
+Input: "She [cut out] to me after the meeting."
+Output: "She [INAUDIBLE 00:05:30: talked] to me after the meeting."
+`,
         },
-        { role: "user", content: text },
+        {
+          role: "user",
+          content: text,
+        },
       ],
-      temperature: 0.5,
-      max_tokens: 1024,
     })
 
-    const fixedText = completion.choices[0].message.content?.trim()
+    const fixedText = completion.choices?.[0]?.message?.content?.trim()
 
-    console.log("[v0] Transcript fixed with guesses")
+    console.log("[v0] Transcript fixed with guesses and timestamps")
 
     return Response.json({
       original: text,
@@ -60,11 +63,4 @@ Output: "I went to [INAUDIBLE: the concert] yesterday."`,
       { status: 500 },
     )
   }
-}
-
-// Optional diagnostic route
-export async function GET() {
-  return Response.json({
-    hasGroqKey: !!process.env.GROQ_API_KEY,
-  })
 }
