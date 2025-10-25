@@ -20,14 +20,7 @@ export function Header() {
         >
           <Mic className="w-8 h-8 text-primary" />
         </motion.div>
-        <motion.h1
-          className="text-5xl font-bold text-balance bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent"
-          style={{ backgroundSize: "200% auto" }}
-          animate={{ backgroundPosition: ["0% center", "200% center"] }}
-          transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-        >
-          HearMe
-        </motion.h1>
+        <h1 className="text-5xl font-bold text-balance text-primary">HearMe</h1>
       </motion.div>
       <motion.p
         className="text-lg text-muted-foreground text-balance"

@@ -70,66 +70,24 @@ export function TranscriptBox({
     if (!transcript && !translatedTranscript) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center">
-          <motion.div
-            className="mb-4"
-            animate={isRecording ? { scale: [1, 1.1, 1] } : { scale: 1 }}
-            transition={{ duration: 1.5, repeat: isRecording ? Number.POSITIVE_INFINITY : 0, ease: "easeInOut" }}
-          >
+          <div className="mb-4">
             <div className="relative w-20 h-20 flex items-center justify-center">
-              <motion.div
-                className={`absolute inset-0 rounded-full ${isRecording ? "bg-primary/20" : "bg-muted/50"}`}
-                animate={
-                  isRecording
-                    ? {
-                        scale: [1, 1.2, 1],
-                        opacity: [0.5, 0.2, 0.5],
-                      }
-                    : {}
-                }
-                transition={{ duration: 2, repeat: isRecording ? Number.POSITIVE_INFINITY : 0, ease: "easeInOut" }}
-              />
-              <motion.div
-                className={`absolute w-12 h-12 rounded-full ${isRecording ? "bg-primary/40" : "bg-muted/70"}`}
-                animate={
-                  isRecording
-                    ? {
-                        scale: [1, 1.15, 1],
-                        opacity: [0.6, 0.3, 0.6],
-                      }
-                    : {}
-                }
-                transition={{
-                  duration: 2,
-                  repeat: isRecording ? Number.POSITIVE_INFINITY : 0,
-                  ease: "easeInOut",
-                  delay: 0.2,
-                }}
-              />
-              <motion.div
-                className={`w-6 h-6 rounded-full ${isRecording ? "bg-primary" : "bg-muted-foreground/50"}`}
-                animate={
-                  isRecording
-                    ? {
-                        scale: [1, 1.1, 1],
-                      }
-                    : {}
-                }
-                transition={{
-                  duration: 2,
-                  repeat: isRecording ? Number.POSITIVE_INFINITY : 0,
-                  ease: "easeInOut",
-                  delay: 0.4,
-                }}
-              />
+              {isRecording && (
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-primary/20"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0.2, 0.5],
+                  }}
+                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                />
+              )}
+              <div className={`w-12 h-12 rounded-full ${isRecording ? "bg-primary" : "bg-muted-foreground/50"}`} />
             </div>
-          </motion.div>
-          <motion.p
-            className="text-muted-foreground text-lg"
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-          >
+          </div>
+          <p className="text-muted-foreground text-lg">
             {isRecording ? "Listening..." : "Click the microphone to start recording"}
-          </motion.p>
+          </p>
         </div>
       )
     }

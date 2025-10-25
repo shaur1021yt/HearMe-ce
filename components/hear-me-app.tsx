@@ -33,12 +33,14 @@ export function HearMeApp({ initialTranscript = "", initialLanguage = "en-US", o
   const finalTranscriptRef = useRef("")
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
   const inaudibleSegmentsRef = useRef<Array<{ index: number; context: string }>>([])
+  const lastSavedContentRef = useRef("")
 
   useEffect(() => {
     setTranscript(initialTranscript)
     setOriginalTranscript(initialTranscript)
     setTranslatedTranscript(initialTranscript)
     finalTranscriptRef.current = initialTranscript
+    lastSavedContentRef.current = initialTranscript
   }, [initialTranscript])
 
   useEffect(() => {
@@ -46,20 +48,42 @@ export function HearMeApp({ initialTranscript = "", initialLanguage = "en-US", o
   }, [initialLanguage])
 
   useEffect(() => {
-    if (onSave && transcript) {
+    if (onSave && finalTranscriptRef.current) {
+      const contentToSave = `${finalTranscriptRef.current}|${language}`
+
+      if (contentToSave === lastSavedContentRef.current) {
+        return
+      }
+
+      if (isRecording) {
+        return
+      }
+
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
+
       saveTimeoutRef.current = setTimeout(() => {
-        onSave(transcript, language)
-      }, 2000)
+        lastSavedContentRef.current = contentToSave
+        onSave(finalTranscriptRef.current, language)
+      }, 3000)
     }
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
     }
-  }, [transcript, language, onSave])
+  }, [finalTranscriptRef.current, language, onSave, isRecording])
+
+  useEffect(() => {
+    if (!isRecording && onSave && finalTranscriptRef.current) {
+      const contentToSave = `${finalTranscriptRef.current}|${language}`
+      if (contentToSave !== lastSavedContentRef.current) {
+        lastSavedContentRef.current = contentToSave
+        onSave(finalTranscriptRef.current, language)
+      }
+    }
+  }, [isRecording, language, onSave])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -311,33 +335,24 @@ export function HearMeApp({ initialTranscript = "", initialLanguage = "en-US", o
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen gradient-bg relative overflow-hidden">
-        <motion.div
-          className="absolute top-20 left-10 w-[500px] h-[500px] rounded-full blur-3xl float-orb"
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        <div
+          className="absolute top-20 left-10 w-[500px] h-[500px] rounded-full blur-3xl opacity-30 pointer-events-none"
           style={{
             background: "radial-gradient(circle, oklch(0.7 0.28 280 / 0.3) 0%, transparent 70%)",
           }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
         />
-        <motion.div
-          className="absolute bottom-20 right-10 w-[600px] h-[600px] rounded-full blur-3xl float-orb-reverse"
+        <div
+          className="absolute bottom-20 right-10 w-[600px] h-[600px] rounded-full blur-3xl opacity-30 pointer-events-none"
           style={{
             background: "radial-gradient(circle, oklch(0.65 0.25 200 / 0.3) 0%, transparent 70%)",
           }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
         />
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-3xl"
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-3xl opacity-20 pointer-events-none"
           style={{
             background: "radial-gradient(circle, oklch(0.65 0.22 320 / 0.2) 0%, transparent 70%)",
           }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }}
         />
 
         <motion.div

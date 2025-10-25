@@ -132,12 +132,7 @@ export function Controls({
                   : "bg-primary hover:bg-primary/90 text-primary-foreground"
               }`}
             >
-              <motion.div
-                className="flex items-center"
-                initial={false}
-                animate={{ scale: isRecording ? [1, 1.1, 1] : 1 }}
-                transition={{ duration: 1, repeat: isRecording ? Number.POSITIVE_INFINITY : 0 }}
-              >
+              <div className="flex items-center">
                 {isRecording ? (
                   <>
                     <MicOff className="w-5 h-5 mr-2" />
@@ -149,7 +144,7 @@ export function Controls({
                     Start Recording
                   </>
                 )}
-              </motion.div>
+              </div>
             </Button>
           </motion.div>
 
@@ -195,12 +190,7 @@ export function Controls({
               disabled={isProcessing || !isFillBlanksEnabled}
               className="glass border-primary/50 hover:bg-primary/10 text-foreground bg-transparent"
             >
-              <motion.div
-                animate={isProcessing ? { rotate: 360 } : {}}
-                transition={{ duration: 2, repeat: isProcessing ? Number.POSITIVE_INFINITY : 0, ease: "linear" }}
-              >
-                <Wand2 className="w-4 h-4 mr-2" />
-              </motion.div>
+              <Wand2 className="w-4 h-4 mr-2" />
               Fill
             </Button>
           </motion.div>
