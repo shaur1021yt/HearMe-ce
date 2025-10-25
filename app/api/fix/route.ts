@@ -2,11 +2,13 @@
 import { createOpenAI } from "ai"
 import { Groq } from "groq-sdk"
 // app/api/test/route.ts
+// app/api/test/route.ts
 export async function GET() {
   return Response.json({
-    hasKey: !!process.env.GROQ_API_KEY,
+    hasGroqKey: !!process.env.GROQ_API_KEY,
   })
 }
+
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
