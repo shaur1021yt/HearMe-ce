@@ -1,7 +1,7 @@
 // app/api/translate/route.ts
 import Groq from "groq-sdk"
 
-export const runtime = "nodejs" // Groq SDK requires Node.js runtime
+export const runtime = "nodejs"
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY!,
@@ -18,9 +18,7 @@ export async function POST(req: Request) {
     if (!process.env.GROQ_API_KEY) {
       console.error("[v0] GROQ_API_KEY missing")
       return Response.json(
-        {
-          error: "Groq API key not configured. Please add it in v0 → Settings → Environment Variables.",
-        },
+        { error: "Groq API key not configured. Please add it in v0 → Settings → Environment Variables." },
         { status: 500 }
       )
     }
@@ -32,13 +30,22 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: `You are a professional translator. Translate the user's message from ${fromLanguage} to ${toLanguage}. 
-Return ONLY the translated text, without any explanations or formatting.`,
+          content: `You are a **strict professional translator**.
+Always translate the text from ${fromLanguage} **into ${toLanguage} only**.
+Do not mix or include English unless ${toLanguage} is English.
+Preserve tone, meaning, and natural fluency in ${toLanguage}.`,
         },
-        { role: "user", content: text },
+        {
+          role: "user",
+          content: `Translate this text faithfully from ${fromLanguage} to ${toLanguage}.
+If the input already seems to be in ${toLanguage}, return it unchanged.
+
+Text:
+${text}`,
+        },
       ],
-      temperature: 0.3,
-      max_tokens: 1024, // ✅ Correct param name
+      temperature: 0.2, // keeps it consistent
+      max_tokens: 1024,
     })
 
     const translated = completion.choices[0].message.content?.trim()
