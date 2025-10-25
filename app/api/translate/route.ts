@@ -1,5 +1,11 @@
-import { generateText } from "ai"
-export const runtime = "edge" // optional for speed
+// app/api/translate/route.ts
+import Groq from "groq-sdk"
+
+export const runtime = "nodejs" // Groq SDK requires Node.js runtime
+
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY!,
+})
 
 export async function POST(req: Request) {
   try {
@@ -10,41 +16,45 @@ export async function POST(req: Request) {
     }
 
     if (!process.env.GROQ_API_KEY) {
-      console.error("[v0] GROQ_API_KEY is missing")
+      console.error("[v0] GROQ_API_KEY missing")
       return Response.json(
         {
-          error:
-            "Groq API key not configured. Please add GROQ_API_KEY to environment variables.",
+          error: "Groq API key not configured. Please add it in v0 → Settings → Environment Variables.",
         },
-        { status: 500 },
+        { status: 500 }
       )
     }
 
-    console.log("[v0] Translating from", fromLanguage, "to", toLanguage)
+    console.log(`[v0] Translating from ${fromLanguage} → ${toLanguage}`)
 
-    const { text: translatedText } = await generateText({
-      // ✅ Use Groq provider
-      model: groq("llama-3.3-70b-versatile"),
-
-      prompt: `You are a professional translator.
-Translate the following text from ${fromLanguage} to ${toLanguage}.
-Provide **only** the translated text — no explanations, notes, or formatting.
-
-Text:
-${text}`,
-
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional translator. Translate the user's message from ${fromLanguage} to ${toLanguage}. 
+Return ONLY the translated text, without any explanations or formatting.`,
+        },
+        { role: "user", content: text },
+      ],
       temperature: 0.3,
-      maxOutputTokens: 1024,
+      max_tokens: 1024, // ✅ Correct param name
     })
+
+    const translated = completion.choices[0].message.content?.trim()
+
+    if (!translated) {
+      throw new Error("Groq returned an empty translation.")
+    }
 
     console.log("[v0] Translation successful")
 
     return Response.json({
       original: text,
-      translated: translatedText.trim(),
+      translated,
     })
   } catch (error) {
-    console.error("[v0] Error translating text:", error)
+    console.error("[v0] Translation error:", error)
     return Response.json({ error: "Failed to translate text" }, { status: 500 })
   }
 }
